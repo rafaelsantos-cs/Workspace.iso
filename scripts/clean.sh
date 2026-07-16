@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly ROOT_DIR
 for target in "$ROOT_DIR/build" "$ROOT_DIR/out" "$ROOT_DIR/work"; do
     case "$target" in
         "$ROOT_DIR"/build|"$ROOT_DIR"/out|"$ROOT_DIR"/work) rm -rf -- "$target" ;;

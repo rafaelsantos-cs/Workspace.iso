@@ -61,8 +61,9 @@
     },
     {
       "name": "shellcheck",
-      "status": "pending_ci",
-      "reason": "tool unavailable in the local validation host"
+      "diagnostics": 0,
+      "tool": "shellcheck 0.11.0",
+      "status": "passed"
     },
     {
       "name": "mkarchiso_build",

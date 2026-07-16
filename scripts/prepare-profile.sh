@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly ROOT_DIR
 readonly RELENG_DIR="${ARCHISO_RELENG_DIR:-/usr/share/archiso/configs/releng}"
-readonly BUILD_ROOT="$(realpath -m -- "${WORKSPACE_BUILD_DIR:-$ROOT_DIR/build}")"
+BUILD_ROOT="$(realpath -m -- "${WORKSPACE_BUILD_DIR:-$ROOT_DIR/build}")"
+readonly BUILD_ROOT
 readonly GENERATED_PROFILE="$BUILD_ROOT/profile"
 
 if [[ ! -d "$RELENG_DIR" ]]; then

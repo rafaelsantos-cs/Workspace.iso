@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly ROOT_DIR
 readonly OVERLAY_LIB="$ROOT_DIR/profile/airootfs/usr/local/lib/workspace"
 readonly NANOLGA="$ROOT_DIR/profile/airootfs/opt/lga/nanolga"
 

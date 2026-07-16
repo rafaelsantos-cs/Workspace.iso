@@ -19,7 +19,7 @@ com `archiso`, root e, para smoke test, QEMU/UEFI. O resultado só muda para
 | tipagem Python | aprovado | Pyright 1.1.411: 0 erros e 0 avisos |
 | UIMP CLI | aprovado | pack + validate com payload arbitrário |
 | hardening systemd | aprovado com contexto | egress 1,6 “OK”; worker 0,7 “SAFE” |
-| ShellCheck | pendente no CI | ferramenta ausente no host local |
+| ShellCheck | aprovado | ShellCheck 0.11.0 sem diagnósticos após correções SC2155/SC2016 |
 | binário Avalonia legado | bloqueado | bundle exige cache gravável; UI não testada na distro |
 | build `mkarchiso` | pendente | host atual não contém ArchISO |
 | boot BIOS/UEFI em QEMU | pendente | QEMU indisponível no host atual |
