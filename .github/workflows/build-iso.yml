@@ -23,6 +23,12 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
+      - name: Reclaim runner disk space
+        run: |
+          sudo rm -rf -- /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache
+          sudo apt-get clean
+          docker system prune --all --force --volumes
+          df -h /
       - name: Build WorkSpace with current ArchISO
         run: ./scripts/build-in-container.sh
       - name: List artifacts
