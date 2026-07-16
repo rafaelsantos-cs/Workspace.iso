@@ -32,7 +32,7 @@ jobs:
       - name: Build WorkSpace with current ArchISO
         run: ./scripts/build-in-container.sh
       - name: List artifacts
-        run: ls -lh out && sha256sum -c out/SHA256SUMS
+        run: ls -lh out && (cd out && sha256sum -c SHA256SUMS)
       - name: Upload ISO
         uses: actions/upload-artifact@v4
         with:

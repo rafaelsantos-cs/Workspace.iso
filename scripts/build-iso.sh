@@ -22,5 +22,8 @@ mkdir -p -- "$WORK_DIR" "$OUT_DIR"
 
 mkarchiso -v -r -w "$WORK_DIR" -o "$OUT_DIR" "$PROFILE_DIR"
 
-sha256sum "$OUT_DIR"/*.iso > "$OUT_DIR/SHA256SUMS"
+(
+  cd -- "$OUT_DIR"
+  sha256sum -- *.iso > SHA256SUMS
+)
 printf 'ISO and checksum written to %s\n' "$OUT_DIR"
