@@ -1,0 +1,15 @@
+polkit.addRule(function(action, subject) {
+    if (subject.user !== "workspace" || !subject.active || !subject.local) {
+        return polkit.Result.NOT_HANDLED;
+    }
+    if (action.id !== "org.freedesktop.systemd1.manage-units") {
+        return polkit.Result.NOT_HANDLED;
+    }
+    var unit = action.lookup("unit") || "";
+    var verb = action.lookup("verb") || "";
+    if (/^lga-learning@[A-Za-z0-9_.-]+\.service$/.test(unit) &&
+        /^(start|stop|restart)$/.test(verb)) {
+        return polkit.Result.YES;
+    }
+    return polkit.Result.NOT_HANDLED;
+});

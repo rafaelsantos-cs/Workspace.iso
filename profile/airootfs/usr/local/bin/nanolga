@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export PYTHONPATH="/opt/lga/nanolga/src${PYTHONPATH:+:$PYTHONPATH}"
+readonly state_home="${XDG_STATE_HOME:-$HOME/.local/state}"
+mkdir -p -- "$state_home/nanolga"
+export NANOLGA_DB="${NANOLGA_DB:-$state_home/nanolga/nanolga.db}"
+exec /usr/bin/python -m nanolga "$@"

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=WorkSpace
+Comment=LGA constrained learning environment
+Exec=/usr/local/bin/workspace-browser --app=file:///usr/share/workspace/welcome/index.html
+Icon=applications-system
+Terminal=false
+Categories=System;Development;

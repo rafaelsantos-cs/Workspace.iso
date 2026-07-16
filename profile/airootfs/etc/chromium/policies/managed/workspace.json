@@ -1,0 +1,28 @@
+{
+  "AutofillAddressEnabled": false,
+  "AutofillCreditCardEnabled": false,
+  "BackgroundModeEnabled": false,
+  "BlockExternalExtensions": true,
+  "BrowserSignin": 0,
+  "DefaultNotificationsSetting": 2,
+  "DeveloperToolsAvailability": 2,
+  "DownloadRestrictions": 3,
+  "ExtensionInstallBlocklist": ["*"],
+  "PasswordManagerEnabled": false,
+  "PrintingEnabled": false,
+  "SafeBrowsingProtectionLevel": 2,
+  "SyncDisabled": true,
+  "URLAllowlist": [
+    "file:///usr/share/workspace/welcome/index.html",
+    "http://127.0.0.1",
+    "https://127.0.0.1",
+    "https://accounts.google.com",
+    "https://apis.google.com",
+    "https://figma.com",
+    "https://fonts.googleapis.com",
+    "https://fonts.gstatic.com",
+    "https://googleusercontent.com",
+    "https://gstatic.com"
+  ],
+  "URLBlocklist": ["*"]
+}

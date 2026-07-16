@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly marker="${XDG_STATE_HOME:-$HOME/.local/state}/workspace/first-session.done"
+if [[ -e "$marker" ]]; then
+    exit 0
+fi
+
+mkdir -p -- "$(dirname -- "$marker")" "$HOME/Desktop"
+if command -v plasma-apply-colorscheme >/dev/null 2>&1; then
+    plasma-apply-colorscheme BreezeDark >/dev/null 2>&1 || true
+fi
+if command -v plasma-apply-wallpaperimage >/dev/null 2>&1; then
+    plasma-apply-wallpaperimage \
+        /usr/share/wallpapers/WorkSpace/contents/images/1600x900.jpg \
+        >/dev/null 2>&1 || true
+fi
+
+cp -f /usr/share/applications/workspace-welcome.desktop "$HOME/Desktop/WorkSpace.desktop"
+cp -f /usr/share/applications/figma-workspace.desktop "$HOME/Desktop/Figma.desktop"
+chmod +x "$HOME/Desktop/WorkSpace.desktop" "$HOME/Desktop/Figma.desktop"
+touch -- "$marker"

@@ -1,0 +1,39 @@
+name: Build ISO
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+    paths:
+      - '.github/workflows/build-iso.yml'
+      - 'VERSION'
+      - 'packages.workspace'
+      - 'profile/**'
+      - 'scripts/**'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build WorkSpace with current ArchISO
+        run: ./scripts/build-in-container.sh
+      - name: List artifacts
+        run: ls -lh out && sha256sum -c out/SHA256SUMS
+      - name: Upload ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorkSpace-ISO
+          path: |
+            out/*.iso
+            out/SHA256SUMS
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14

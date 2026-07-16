@@ -1,0 +1,11 @@
+/build/
+/out/
+/work/
+/.pytest_cache/
+**/__pycache__/
+*.pyc
+*.iso
+*.img
+*.tar.zst
+*.zip
+qa-results.json

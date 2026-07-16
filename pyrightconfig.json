@@ -1,0 +1,14 @@
+{
+  "include": [
+    "profile/airootfs/usr/local/lib/workspace",
+    "profile/airootfs/opt/lga/nanolga/src",
+    "profile/airootfs/opt/lga/nanolga/tests",
+    "tests"
+  ],
+  "extraPaths": [
+    "profile/airootfs/usr/local/lib/workspace",
+    "profile/airootfs/opt/lga/nanolga/src"
+  ],
+  "pythonVersion": "3.11",
+  "typeCheckingMode": "basic"
+}

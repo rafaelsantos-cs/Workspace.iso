@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly browser_home="${XDG_DATA_HOME:-$HOME/.local/share}/workspace-browser"
+mkdir -p -- "$browser_home/Downloads"
+chmod 0700 -- "$browser_home"
+
+if [[ $# -eq 0 ]]; then
+    set -- --app=https://www.figma.com/files
+fi
+
+exec /usr/bin/bwrap \
+    --die-with-parent \
+    --new-session \
+    --unshare-pid \
+    --unshare-ipc \
+    --unshare-uts \
+    --ro-bind / / \
+    --dev-bind /dev /dev \
+    --proc /proc \
+    --tmpfs /tmp \
+    --tmpfs /home \
+    --dir /home/browser \
+    --bind "$browser_home" /home/browser \
+    --tmpfs /var/lib/lga \
+    --setenv HOME /home/browser \
+    --setenv XDG_CONFIG_HOME /home/browser/.config \
+    --setenv XDG_CACHE_HOME /home/browser/.cache \
+    /usr/bin/chromium \
+        --no-first-run \
+        --no-default-browser-check \
+        --disable-background-networking \
+        --disable-breakpad \
+        --disable-component-update \
+        --disable-sync \
+        --ozone-platform-hint=auto \
+        "$@"

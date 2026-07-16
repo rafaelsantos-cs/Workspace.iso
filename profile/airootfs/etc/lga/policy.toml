@@ -1,0 +1,67 @@
+policy_version = 1
+
+[learning]
+network_default = "deny"
+max_timeout_seconds = 1800
+max_manifest_bytes = 65536
+max_output_bytes = 16777216
+allowed_executables = [
+  "/usr/bin/bash",
+  "/usr/bin/blender",
+  "/usr/bin/cmake",
+  "/usr/bin/dotnet",
+  "/usr/bin/git",
+  "/usr/bin/go",
+  "/usr/bin/java",
+  "/usr/bin/make",
+  "/usr/bin/meson",
+  "/usr/bin/ninja",
+  "/usr/bin/node",
+  "/usr/bin/python",
+  "/usr/bin/python3",
+]
+allowed_environment = [
+  "LANG",
+  "LC_ALL",
+  "PYTHONHASHSEED",
+  "SOURCE_DATE_EPOCH",
+  "TZ",
+]
+
+[egress]
+max_audit_bytes = 67108864
+max_bytes = 33554432
+max_quarantine_bytes = 1073741824
+timeout_seconds = 30
+user_agent = "WorkSpace-Egress/0.1"
+allowed_hosts = [
+  "api.github.com",
+  "api.nuget.org",
+  "archlinux.org",
+  "developer.mozilla.org",
+  "docs.archlinux.org",
+  "docs.blender.org",
+  "docs.github.com",
+  "docs.kernel.org",
+  "docs.python.org",
+  "files.pythonhosted.org",
+  "github.com",
+  "globalcdn.nuget.org",
+  "learn.microsoft.com",
+  "objects.githubusercontent.com",
+  "pypi.org",
+  "raw.githubusercontent.com",
+  "wiki.archlinux.org",
+  "www.nuget.org",
+]
+
+[uimp]
+max_entries = 128
+max_file_bytes = 67108864
+max_total_bytes = 268435456
+max_manifest_bytes = 1048576
+
+[browser]
+autonomous_use = false
+downloads = "blocked"
+policy_boundary = false

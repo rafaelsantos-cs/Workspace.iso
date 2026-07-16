@@ -1,0 +1,19 @@
+[Unit]
+Description=Validate LGA UIMP artifacts
+
+[Service]
+Type=oneshot
+User=lga-runner
+Group=lga-ipc
+ExecStartPre=/usr/bin/sleep 2
+ExecStart=/usr/local/bin/uimp scan /var/lib/lga/artifacts
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+PrivateNetwork=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=strict
+ReadOnlyPaths=/var/lib/lga/artifacts /etc/lga
+RestrictAddressFamilies=AF_UNIX
+RestrictNamespaces=yes
+LockPersonality=yes

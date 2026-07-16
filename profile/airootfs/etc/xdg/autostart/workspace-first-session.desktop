@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Initialize WorkSpace session
+Exec=/usr/local/bin/workspace-first-session
+OnlyShowIn=KDE;
+NoDisplay=true
+X-KDE-autostart-phase=2

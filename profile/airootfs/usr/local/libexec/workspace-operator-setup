@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# The account cannot be reached from the desktop with a known password. tty3
+# uses agetty autologin and the only sudo command is the interactive installer.
+readonly password="$(/usr/bin/openssl rand -base64 36 | tr -d '\n')"
+printf 'operator:%s\n' "$password" | /usr/sbin/chpasswd

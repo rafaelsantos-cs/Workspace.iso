@@ -1,0 +1,45 @@
+[Unit]
+Description=LGA audited HTTPS egress broker
+Documentation=file:///usr/share/doc/workspace/OPERATIONS.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lga-egress
+Group=lga-ipc
+ExecStart=/usr/bin/python /usr/local/lib/workspace/egressd.py --policy /etc/lga/policy.toml
+Restart=on-failure
+RestartSec=2s
+RuntimeDirectory=lga
+RuntimeDirectoryMode=0750
+StateDirectory=lga/quarantine lga/audit
+StateDirectoryMode=0750
+UMask=0077
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+PrivateDevices=yes
+PrivateTmp=yes
+ProtectClock=yes
+ProtectControlGroups=yes
+ProtectHome=yes
+ProtectHostname=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ProtectProc=invisible
+ProcSubset=pid
+ProtectSystem=strict
+ReadWritePaths=/var/lib/lga/quarantine /var/lib/lga/audit /run/lga
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+RemoveIPC=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+SystemCallFilter=~@mount @reboot @swap @obsolete @privileged
+
+[Install]
+WantedBy=multi-user.target

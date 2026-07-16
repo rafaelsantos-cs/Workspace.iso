@@ -1,0 +1,16 @@
+[Unit]
+Description=Prepare isolated WorkSpace operator identity
+Before=getty@tty3.service sddm.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/workspace-operator-setup
+RemainAfterExit=yes
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=full
+ReadWritePaths=/etc
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch LGA artifacts for uncatalogued output
+
+[Path]
+PathChanged=/var/lib/lga/artifacts
+Unit=lga-artifact-guard.service
+
+[Install]
+WantedBy=multi-user.target

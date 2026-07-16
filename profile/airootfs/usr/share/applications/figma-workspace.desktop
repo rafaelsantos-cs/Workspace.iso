@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Figma — WorkSpace
+Comment=Supervised Figma PWA with managed browser policy
+Exec=/usr/local/bin/workspace-browser --app=https://www.figma.com/files
+Icon=chromium
+Terminal=false
+Categories=Graphics;Development;
+StartupWMClass=workspace-browser

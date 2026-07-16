@@ -1,0 +1,22 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install validators
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Validate profile and runtime
+        run: ./scripts/validate.sh
+      - name: Type-check Python
+        run: npx --yes pyright@1.1.411 --project pyrightconfig.json

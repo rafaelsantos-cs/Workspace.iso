@@ -1,0 +1,6 @@
+NAME="WorkSpace"
+VERSION="0.1.0"
+ID=workspace
+ID_LIKE=arch
+ARCHISO_PROFILE=releng
+LGA_PROTOCOL=UIMP-0.1

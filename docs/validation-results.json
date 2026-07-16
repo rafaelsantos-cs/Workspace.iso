@@ -1,0 +1,79 @@
+{
+  "as_of": "2026-07-16",
+  "environment": {
+    "architecture": "x86_64",
+    "distribution": "Ubuntu 24.04.3 LTS",
+    "python": "3.12.13"
+  },
+  "overall_assessment": "partial",
+  "checks": [
+    {
+      "name": "archiso_profile_static",
+      "passed": 6,
+      "failed": 0,
+      "status": "passed"
+    },
+    {
+      "name": "workspace_guard_unit_tests",
+      "passed": 15,
+      "failed": 0,
+      "status": "passed"
+    },
+    {
+      "name": "nanolga_unit_tests",
+      "passed": 11,
+      "failed": 0,
+      "status": "passed"
+    },
+    {
+      "name": "python_type_check",
+      "diagnostics": 0,
+      "tool": "pyright 1.1.411",
+      "status": "passed"
+    },
+    {
+      "name": "nanolga_offline_smoke",
+      "passed": 1,
+      "failed": 0,
+      "status": "passed"
+    },
+    {
+      "name": "uimp_cli_smoke",
+      "passed": 1,
+      "failed": 0,
+      "status": "passed"
+    },
+    {
+      "name": "systemd_security_offline",
+      "status": "passed_with_context",
+      "services": {
+        "lga-egressd.service": {
+          "exposure": 1.6,
+          "rating": "OK",
+          "network_expected": true
+        },
+        "lga-learning@.service": {
+          "exposure": 0.7,
+          "rating": "SAFE",
+          "network_expected": false
+        }
+      }
+    },
+    {
+      "name": "shellcheck",
+      "status": "pending_ci",
+      "reason": "tool unavailable in the local validation host"
+    },
+    {
+      "name": "mkarchiso_build",
+      "status": "blocked",
+      "reason": "ArchISO is unavailable on the Ubuntu validation host"
+    },
+    {
+      "name": "qemu_bios_uefi_boot",
+      "status": "blocked",
+      "reason": "QEMU and a built ISO are unavailable on the validation host"
+    }
+  ],
+  "release_gate": "source_ready_iso_not_built"
+}

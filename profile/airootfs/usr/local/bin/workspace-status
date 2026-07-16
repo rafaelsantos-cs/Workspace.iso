@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+printf 'WorkSpace release\n'
+sed -n '1,20p' /etc/workspace-release
+printf '\nServices\n'
+systemctl --no-pager --plain is-active lga-egressd.service firewalld.service NetworkManager.service || true
+printf '\nJobs\n'
+find /var/lib/lga/jobs -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null | sort || true
+printf '\nArtifact queue\n'
+find /var/lib/lga/artifacts -mindepth 1 -maxdepth 1 -type f -printf '%f\n' 2>/dev/null | sort || true
+printf '\nPolicy\n'
+printf 'learning network: deny\nexternal acquisition: HTTPS broker + allowlist\nbrowser: supervised only\n'

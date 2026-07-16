@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>WorkSpace</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #080808; color: #f5f5f3; display: grid; place-items: center; }
+    main { width: min(980px, 90vw); }
+    header { display: flex; align-items: center; gap: 24px; border-bottom: 1px solid #333; padding-bottom: 28px; }
+    header img { width: 112px; height: 112px; object-fit: cover; border-radius: 50%; background: #fff; }
+    h1 { font-size: clamp(42px, 8vw, 88px); letter-spacing: -.06em; margin: 0; }
+    .tag { color: #aaa; font-size: 18px; margin-top: 6px; }
+    section { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 28px; }
+    article { min-height: 180px; border: 1px solid #333; border-radius: 18px; padding: 22px; background: #111; }
+    article b { display: block; font-size: 14px; color: #aaa; text-transform: uppercase; letter-spacing: .12em; }
+    article h2 { margin: 24px 0 8px; font-size: 26px; }
+    article p { color: #aaa; line-height: 1.5; margin: 0; }
+    footer { margin-top: 28px; color: #777; font-family: monospace; }
+    @media (max-width: 760px) { section { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <img src="workspace-globe.jpg" alt="Logo da LGA">
+      <div><h1>WorkSpace</h1><div class="tag">Ambiente de aprendizado controlado da LGA</div></div>
+    </header>
+    <section>
+      <article><b>Core</b><h2>Decide</h2><p>Coordena objetivos, permissões e memória; não executa diretamente um job irrestrito.</p></article>
+      <article><b>Worker</b><h2>Experimenta</h2><p>Executa offline, com limites de CPU, memória, processos, tempo e filesystem.</p></article>
+      <article><b>UIMP</b><h2>Cataloga</h2><p>Todo artefato compartilhado pode carregar origem, destino, protocolo, trace e hashes.</p></article>
+    </section>
+    <footer>workspace-status · workspace-job · workspace-fetch · uimp · nanolga</footer>
+  </main>
+</body>
+</html>

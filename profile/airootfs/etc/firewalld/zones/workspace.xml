@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<zone target="DROP">
+  <short>WorkSpace</short>
+  <description>Default inbound-deny zone for WorkSpace.</description>
+  <service name="dhcpv6-client"/>
+</zone>
