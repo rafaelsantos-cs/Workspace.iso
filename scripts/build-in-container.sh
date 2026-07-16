@@ -4,10 +4,10 @@ set -euo pipefail
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly ROOT_DIR
 
-if command -v podman >/dev/null 2>&1; then
-    runtime=podman
-elif command -v docker >/dev/null 2>&1; then
+if command -v docker >/dev/null 2>&1; then
     runtime=docker
+elif command -v podman >/dev/null 2>&1; then
+    runtime=podman
 else
     echo "error: Podman or Docker is required" >&2
     exit 2
