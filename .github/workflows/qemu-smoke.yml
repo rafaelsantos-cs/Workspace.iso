@@ -1,0 +1,233 @@
+name: QEMU smoke test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/qemu-smoke.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: qemu-smoke-main
+  cancel-in-progress: true
+
+jobs:
+  qemu-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Reclaim runner disk space
+        run: |
+          sudo rm -rf -- \
+            /usr/local/lib/android \
+            /usr/share/dotnet \
+            /opt/ghc \
+            /usr/local/.ghcup \
+            /opt/hostedtoolcache
+          sudo apt-get clean
+          df -h /
+
+      - name: Install QEMU test tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            expect \
+            netcat-openbsd \
+            ovmf \
+            python3-venv \
+            qemu-system-x86 \
+            tesseract-ocr \
+            xorriso
+          python3 -m venv /tmp/workspace-vnc
+          /tmp/workspace-vnc/bin/pip install --disable-pip-version-check vncdotool
+          if [[ -e /dev/kvm ]]; then
+            sudo chmod 0666 /dev/kvm
+            printf 'QEMU_ACCEL=-enable-kvm -cpu host\n' >> "$GITHUB_ENV"
+            printf 'QEMU_BOOT_WAIT=120\n' >> "$GITHUB_ENV"
+          else
+            printf 'QEMU_ACCEL=-accel tcg,thread=multi -cpu max\n' >> "$GITHUB_ENV"
+            printf 'QEMU_BOOT_WAIT=300\n' >> "$GITHUB_ENV"
+          fi
+
+      - name: Download and verify latest successful ISO
+        run: |
+          run_id="$(gh run list \
+            --workflow build-iso.yml \
+            --branch main \
+            --status success \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId')"
+          test -n "$run_id"
+          printf 'Using build run %s\n' "$run_id"
+          gh run download "$run_id" --name WorkSpace-ISO --dir dist
+          (cd dist && sha256sum -c SHA256SUMS)
+          find dist -maxdepth 1 -type f -printf '%f %s bytes\n'
+
+      - name: Test kernel, live root and LGA services over serial
+        run: |
+          set -euo pipefail
+          mkdir -p results/serial
+          iso="$(find dist -maxdepth 1 -type f -name '*.iso' -print -quit)"
+          test -n "$iso"
+          label="$(xorriso -indev "$iso" -pvd_info 2>&1 \
+            | sed -n "s/^Volume id *: '\(.*\)'/\1/p" \
+            | head -n 1)"
+          test -n "$label"
+          xorriso -osirrox on -indev "$iso" \
+            -extract /workspace/boot/x86_64/vmlinuz-linux results/serial/vmlinuz-linux
+          xorriso -osirrox on -indev "$iso" \
+            -extract /workspace/boot/x86_64/initramfs-linux.img results/serial/initramfs-linux.img
+
+          cat > /tmp/run-workspace-serial.sh <<EOF
+          #!/usr/bin/env bash
+          exec qemu-system-x86_64 $QEMU_ACCEL \
+            -machine q35 \
+            -m 4096 \
+            -smp 2 \
+            -kernel results/serial/vmlinuz-linux \
+            -initrd results/serial/initramfs-linux.img \
+            -append 'archisobasedir=workspace archisolabel=$label console=ttyS0,115200n8 systemd.unit=multi-user.target' \
+            -cdrom '$iso' \
+            -nic user,model=virtio-net-pci \
+            -nographic \
+            -monitor none \
+            -no-reboot
+          EOF
+          chmod +x /tmp/run-workspace-serial.sh
+
+          cat > /tmp/workspace-serial.exp <<'EOF'
+          set timeout 360
+          log_file -noappend results/serial/guest-console.log
+          spawn /tmp/run-workspace-serial.sh
+          expect {
+            -re {login: *$} {}
+            timeout { puts stderr "serial login prompt was not reached"; exit 1 }
+            eof { puts stderr "QEMU exited before login"; exit 1 }
+          }
+          send -- "workspace\r"
+          expect {
+            -re {Password: *$} {}
+            timeout { puts stderr "password prompt was not reached"; exit 1 }
+          }
+          send -- "workspace\r"
+          expect {
+            -re {[$#] *$} {}
+            timeout { puts stderr "shell prompt was not reached"; exit 1 }
+          }
+          send -- "systemctl is-active NetworkManager.service firewalld.service lga-egressd.service lga-artifact-guard.path workspace-operator-setup.service && workspace-status && nanolga demo --json && printf 'SERIAL%s\\n' 'READY'\r"
+          expect {
+            -re {SERIALREADY} {}
+            timeout { puts stderr "guest service/runtime checks failed"; exit 1 }
+            eof { puts stderr "QEMU exited during guest checks"; exit 1 }
+          }
+          send -- "\001x"
+          expect eof
+          EOF
+          expect /tmp/workspace-serial.exp
+          rm -f -- results/serial/vmlinuz-linux results/serial/initramfs-linux.img
+
+      - name: Test BIOS and UEFI graphical boots
+        run: |
+          set -euo pipefail
+          mkdir -p results/gui
+          iso="$(find dist -maxdepth 1 -type f -name '*.iso' -print -quit)"
+          test -n "$iso"
+          read -r -a accel <<< "$QEMU_ACCEL"
+          readonly vnc=/tmp/workspace-vnc/bin/vncdotool
+
+          cleanup_pid() {
+            local pid="$1"
+            kill "$pid" 2>/dev/null || true
+            wait "$pid" 2>/dev/null || true
+          }
+
+          boot_and_probe() {
+            local mode="$1"
+            local display="$2"
+            local port=$((5900 + display))
+            local output="results/gui/$mode"
+            local pid
+            local ready=0
+            shift 2
+            mkdir -p "$output"
+
+            qemu-system-x86_64 "${accel[@]}" \
+              -machine q35 \
+              -m 4096 \
+              -smp 2 \
+              -boot d \
+              -cdrom "$iso" \
+              -nic user,model=virtio-net-pci \
+              -device virtio-vga \
+              -display "vnc=127.0.0.1:$display" \
+              -serial "file:$output/serial.log" \
+              -monitor none \
+              -no-reboot \
+              "$@" \
+              >"$output/qemu.log" 2>&1 &
+            pid=$!
+            for _ in $(seq 1 30); do
+              nc -z 127.0.0.1 "$port" && break
+              sleep 2
+            done
+            nc -z 127.0.0.1 "$port"
+
+            sleep "$QEMU_BOOT_WAIT"
+            "$vnc" -s "127.0.0.1::$port" capture "$output/desktop.png"
+
+            for attempt in 1 2 3; do
+              "$vnc" -s "127.0.0.1::$port" key ctrl-alt-f3
+              sleep 8
+              "$vnc" -s "127.0.0.1::$port" type "printf '${mode}%s\\n' READY"
+              "$vnc" -s "127.0.0.1::$port" key enter
+              sleep 5
+              "$vnc" -s "127.0.0.1::$port" capture "$output/tty-$attempt.png"
+              tesseract "$output/tty-$attempt.png" stdout --psm 6 \
+                2>/dev/null | tee "$output/tty-$attempt.txt"
+              if grep -Eiq "${mode}READY" "$output/tty-$attempt.txt"; then
+                ready=1
+                break
+              fi
+            done
+            cleanup_pid "$pid"
+            test "$ready" -eq 1
+          }
+
+          boot_and_probe BIOS 1
+
+          ovmf_code="$(find /usr/share/OVMF -type f \
+            \( -name 'OVMF_CODE_4M.fd' -o -name 'OVMF_CODE.fd' \) \
+            -print -quit)"
+          ovmf_vars="$(find /usr/share/OVMF -type f \
+            \( -name 'OVMF_VARS_4M.fd' -o -name 'OVMF_VARS.fd' \) \
+            -print -quit)"
+          test -n "$ovmf_code"
+          test -n "$ovmf_vars"
+          cp "$ovmf_vars" results/gui/uefi-vars.fd
+          boot_and_probe UEFI 2 \
+            -drive "if=pflash,format=raw,readonly=on,file=$ovmf_code" \
+            -drive 'if=pflash,format=raw,file=results/gui/uefi-vars.fd'
+
+          printf 'Serial runtime, BIOS boot and UEFI boot passed.\n' \
+            | tee results/QEMU-SMOKE-PASSED.txt
+          printf '## QEMU smoke test\n\nSerial runtime, BIOS boot and UEFI boot passed.\n' \
+            >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload QEMU evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorkSpace-QEMU-evidence
+          path: results
+          if-no-files-found: warn
+          retention-days: 14
