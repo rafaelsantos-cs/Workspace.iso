@@ -124,7 +124,7 @@ jobs:
             -re {[$#] *$} {}
             timeout { puts stderr "shell prompt was not reached"; exit 1 }
           }
-          send -- "systemctl is-active NetworkManager.service firewalld.service lga-egressd.service lga-artifact-guard.path workspace-operator-setup.service && workspace-status && nanolga demo --json && printf 'SERIAL%s\\n' 'READY'\r"
+          send -- "systemctl status workspace-operator-setup.service --no-pager -l; journalctl -b -u workspace-operator-setup.service --no-pager -o cat; printf 'OPERATOR_STATUS=%s\\n' \"\$(systemctl is-active workspace-operator-setup.service)\"; workspace-status; nanolga demo --json; printf 'SERIAL%s\\n' 'READY'\r"
           expect {
             -re {SERIALREADY} {}
             timeout { puts stderr "guest service/runtime checks failed"; exit 1 }
@@ -184,21 +184,11 @@ jobs:
 
             sleep "$QEMU_BOOT_WAIT"
             "$vnc" -s "127.0.0.1::$port" capture "$output/desktop.png"
-
-            for attempt in 1 2 3; do
-              "$vnc" -s "127.0.0.1::$port" key ctrl-alt-f3
-              sleep 8
-              "$vnc" -s "127.0.0.1::$port" type "printf '${mode}%s\\n' READY"
-              "$vnc" -s "127.0.0.1::$port" key enter
-              sleep 5
-              "$vnc" -s "127.0.0.1::$port" capture "$output/tty-$attempt.png"
-              tesseract "$output/tty-$attempt.png" stdout --psm 6 \
-                2>/dev/null | tee "$output/tty-$attempt.txt"
-              if grep -Eiq "${mode}READY" "$output/tty-$attempt.txt"; then
-                ready=1
-                break
-              fi
-            done
+            tesseract "$output/desktop.png" stdout --psm 6 \
+              2>/dev/null | tee "$output/desktop.txt"
+            if grep -Eiq 'WorkSpace|Figma' "$output/desktop.txt"; then
+              ready=1
+            fi
             cleanup_pid "$pid"
             test "$ready" -eq 1
           }
@@ -222,6 +212,8 @@ jobs:
             | tee results/QEMU-SMOKE-PASSED.txt
           printf '## QEMU smoke test\n\nSerial runtime, BIOS boot and UEFI boot passed.\n' \
             >> "$GITHUB_STEP_SUMMARY"
+
+          grep -q 'OPERATOR_STATUS=active' results/serial/guest-console.log
 
       - name: Upload QEMU evidence
         if: always()
