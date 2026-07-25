@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.2 - 2026-07-25
+
+- confirmação em QEMU de que o runtime serial, o serviço `operator`, a
+  fronteira externa da WorkSpace e o laboratório NanoLGA iniciam corretamente;
+- correção do smoke test gráfico para respeitar a política de rede da distro:
+  SSH de entrada permanece bloqueado e a sonda usa o TTY3 local isolado;
+- marcador gráfico gerado sem texto literal no comando, impedindo falso
+  positivo no OCR;
+- encerramento determinístico do QEMU serial pelo monitor da VM.
+
 ## 0.1.1 - 2026-07-25
 
 - alinhamento com a especificação LGA 0.3: **Learning Generative Architecture**;

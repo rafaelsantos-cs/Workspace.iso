@@ -45,11 +45,9 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             expect \
             netcat-openbsd \
-            openssh-client \
             ovmf \
             python3-venv \
             qemu-system-x86 \
-            sshpass \
             tesseract-ocr \
             xorriso
           python3 -m venv /tmp/workspace-vnc
@@ -57,10 +55,10 @@ jobs:
           if [[ -e /dev/kvm ]]; then
             sudo chmod 0666 /dev/kvm
             printf 'QEMU_ACCEL=-enable-kvm -cpu host\n' >> "$GITHUB_ENV"
-            printf 'QEMU_GUEST_TRIES=80\n' >> "$GITHUB_ENV"
+            printf 'QEMU_TTY_TRIES=24\n' >> "$GITHUB_ENV"
           else
             printf 'QEMU_ACCEL=-accel tcg,thread=multi -cpu max\n' >> "$GITHUB_ENV"
-            printf 'QEMU_GUEST_TRIES=140\n' >> "$GITHUB_ENV"
+            printf 'QEMU_TTY_TRIES=48\n' >> "$GITHUB_ENV"
           fi
 
       - name: Download and verify the matching ISO
@@ -115,7 +113,7 @@ jobs:
             -cdrom '$iso' \
             -nic user,model=virtio-net-pci \
             -nographic \
-            -monitor none \
+            -monitor unix:/tmp/workspace-serial-monitor,server,nowait \
             -no-reboot
           EOF
           chmod +x /tmp/run-workspace-serial.sh
@@ -145,7 +143,7 @@ jobs:
             timeout { puts stderr "guest service/runtime checks failed"; exit 1 }
             eof { puts stderr "QEMU exited during guest checks"; exit 1 }
           }
-          send -- "\001x"
+          exec sh -c {printf 'quit\n' | nc -U /tmp/workspace-serial-monitor}
           expect eof
           EOF
           expect /tmp/workspace-serial.exp
@@ -163,14 +161,8 @@ jobs:
           test -n "$iso"
           read -r -a accel <<< "$QEMU_ACCEL"
           readonly vnc=/tmp/workspace-vnc/bin/vncdotool
-          readonly ssh_options=(
-            -o ConnectTimeout=3
-            -o LogLevel=ERROR
-            -o PreferredAuthentications=password
-            -o PubkeyAuthentication=no
-            -o StrictHostKeyChecking=no
-            -o UserKnownHostsFile=/dev/null
-          )
+          readonly ready_hex='\x47\x52\x41\x50\x48\x49\x43\x41\x4c\x52\x45\x41\x44\x59'
+          readonly wait_hex='\x57\x41\x49\x54'
 
           cleanup_pid() {
             local pid="$1"
@@ -178,27 +170,17 @@ jobs:
             wait "$pid" 2>/dev/null || true
           }
 
-          ssh_guest() {
-            local port="$1"
-            shift
-            sshpass -p workspace ssh \
-              "${ssh_options[@]}" \
-              -p "$port" \
-              workspace@127.0.0.1 \
-              "$@"
-          }
-
           boot_and_probe() {
             local mode="$1"
             local display="$2"
-            local ssh_port="$3"
             local vnc_port=$((5900 + display))
             local output="results/gui/$mode"
             local pid
-            local ssh_ready=0
             local graphical_ready=0
-            shift 3
+            local probe_command
+            shift 2
             mkdir -p "$output"
+            probe_command="clear; if systemctl is-active graphical.target sddm.service workspace-operator-setup.service getty@tty3.service >/dev/null 2>&1 && pgrep -u workspace -x plasmashell >/dev/null && pgrep -t tty3 -u operator -x bash >/dev/null; then printf '${ready_hex}\\n'; else printf '${wait_hex}\\n'; fi"
 
             qemu-system-x86_64 "${accel[@]}" \
               -machine q35 \
@@ -206,7 +188,7 @@ jobs:
               -smp 2 \
               -boot d \
               -cdrom "$iso" \
-              -nic "user,model=virtio-net-pci,hostfwd=tcp:127.0.0.1:${ssh_port}-:22" \
+              -nic user,model=virtio-net-pci \
               -device virtio-vga \
               -display "vnc=127.0.0.1:$display" \
               -serial "file:$output/serial.log" \
@@ -225,38 +207,48 @@ jobs:
               return 1
             fi
 
-            for _ in $(seq 1 "$QEMU_GUEST_TRIES"); do
-              if ssh_guest "$ssh_port" "printf SSHREADY" >/dev/null 2>&1; then
-                ssh_ready=1
+            # Inbound SSH is intentionally blocked by the WorkSpace firewall.
+            # Probe the isolated local operator console instead of weakening the
+            # image solely for CI.
+            sleep 60
+            for attempt in $(seq 1 "$QEMU_TTY_TRIES"); do
+              if ! kill -0 "$pid" 2>/dev/null; then
                 break
               fi
-              sleep 3
-            done
-            if [[ "$ssh_ready" -ne 1 ]]; then
-              "$vnc" -s "127.0.0.1::$vnc_port" capture "$output/timeout.png" || true
-              cleanup_pid "$pid"
-              return 1
-            fi
-
-            for _ in $(seq 1 60); do
-              if ssh_guest "$ssh_port" \
-                "set -eu; systemctl is-active graphical.target sddm.service workspace-operator-setup.service getty@tty3.service; pgrep -u workspace -x plasmashell >/dev/null; pgrep -t tty3 -u operator -x bash >/dev/null; printf 'GRAPHICALREADY\\n'" \
-                >"$output/guest-check.txt" 2>&1; then
+              "$vnc" -s "127.0.0.1::$vnc_port" key ctrl-alt-f3 || true
+              sleep 4
+              "$vnc" -s "127.0.0.1::$vnc_port" type "$probe_command" || true
+              "$vnc" -s "127.0.0.1::$vnc_port" key enter || true
+              sleep 4
+              "$vnc" -s "127.0.0.1::$vnc_port" \
+                capture "$output/tty-$attempt.png" || true
+              tesseract "$output/tty-$attempt.png" stdout --psm 6 \
+                2>/dev/null | tee "$output/tty-$attempt.txt" || true
+              if grep -Eiq 'GRAPHICAL.?READY' "$output/tty-$attempt.txt"; then
                 graphical_ready=1
                 break
               fi
-              sleep 3
+              sleep 5
             done
 
-            "$vnc" -s "127.0.0.1::$vnc_port" capture "$output/desktop.png" || true
-            tesseract "$output/desktop.png" stdout --psm 6 \
-              2>/dev/null | tee "$output/desktop.txt" || true
+            if [[ "$graphical_ready" -eq 1 ]]; then
+              "$vnc" -s "127.0.0.1::$vnc_port" key ctrl-alt-f1 || true
+              sleep 8
+              "$vnc" -s "127.0.0.1::$vnc_port" \
+                capture "$output/desktop-tty1.png" || true
+              "$vnc" -s "127.0.0.1::$vnc_port" key ctrl-alt-f2 || true
+              sleep 8
+              "$vnc" -s "127.0.0.1::$vnc_port" \
+                capture "$output/desktop-tty2.png" || true
+            else
+              "$vnc" -s "127.0.0.1::$vnc_port" \
+                capture "$output/timeout.png" || true
+            fi
             cleanup_pid "$pid"
             test "$graphical_ready" -eq 1
-            grep -q 'GRAPHICALREADY' "$output/guest-check.txt"
           }
 
-          boot_and_probe BIOS 1 2221
+          boot_and_probe BIOS 1
 
           ovmf_code="$(find /usr/share/OVMF -type f \
             \( -name 'OVMF_CODE_4M.fd' -o -name 'OVMF_CODE.fd' \) \
@@ -267,7 +259,7 @@ jobs:
           test -n "$ovmf_code"
           test -n "$ovmf_vars"
           cp "$ovmf_vars" results/gui/uefi-vars.fd
-          boot_and_probe UEFI 2 2222 \
+          boot_and_probe UEFI 2 \
             -drive "if=pflash,format=raw,readonly=on,file=$ovmf_code" \
             -drive 'if=pflash,format=raw,file=results/gui/uefi-vars.fd'
 

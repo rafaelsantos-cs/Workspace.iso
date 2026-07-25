@@ -1,5 +1,5 @@
 NAME="WorkSpace"
-VERSION="0.1.1"
+VERSION="0.1.2"
 ID=workspace
 ID_LIKE=arch
 ARCHISO_PROFILE=releng

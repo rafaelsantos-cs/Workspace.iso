@@ -23,6 +23,13 @@ A resposta informa hash, tamanho, MIME e caminho de quarentena. O broker aceita
 somente HTTPS e hosts listados em `/etc/lga/policy.toml`, revalida todos os
 redirects e rejeita IPs privados, loopback, link-local, multicast e reservados.
 
+## Rede de entrada
+
+A zona padrão do `firewalld` descarta conexões recebidas, inclusive SSH. Esse
+bloqueio é intencional: a WorkSpace inicia comunicação externa pelo broker
+auditável e não expõe uma porta administrativa na sessão live. Testes e
+manutenção local usam os consoles físicos; o TTY3 é reservado ao `operator`.
+
 ## Empacotar um artefato
 
 ```bash
