@@ -66,6 +66,82 @@ def validate_policy() -> None:
     require(len(hosts) == len(set(hosts)), "egress allowlist contains duplicates")
 
 
+def validate_architecture() -> None:
+    architecture = tomllib.loads(
+        (AIROOTFS / "etc/lga/architecture.toml").read_text(encoding="utf-8")
+    )
+    require(
+        architecture.get("name") == "Learning Generative Architecture",
+        "canonical LGA expansion is invalid",
+    )
+    require(architecture.get("spec_version") == "0.3.0", "invalid LGA spec version")
+    require(
+        architecture["boundaries"].get("workspace") == "external-client",
+        "WorkSpace must remain outside the LTCA",
+    )
+    require(
+        architecture["boundaries"].get("lusc_access") == "mma-only",
+        "MMA must be the only LUSC ingress/egress",
+    )
+    require(
+        architecture["v1"].get("request_path")
+        == ["workspace-cli", "ltca-ingress", "deepbrain-v1"],
+        "invalid canonical v1 request path",
+    )
+    require(
+        architecture["v1"].get("memory_path")
+        == ["deepbrain-v1", "mma-minimal", "lusc"],
+        "invalid canonical v1 memory path",
+    )
+    require(
+        architecture["components"]["agp"].get("expansion")
+        == "Assistant Generative Processor",
+        "invalid AGP expansion",
+    )
+    require(
+        architecture["components"]["cca"].get("expansion")
+        == "Cognitive Choice Agent",
+        "invalid CCA expansion",
+    )
+    require(
+        architecture["components"]["lam"].get("expansion")
+        == "LGA Asynchronous Messaging",
+        "invalid LAM expansion",
+    )
+    require(
+        architecture["components"]["lip"].get("authority") == "none",
+        "a LIP must not receive cognitive authority",
+    )
+    require(
+        architecture["personas"]["ezlia"].get("installed") is True
+        and architecture["personas"]["ezlia"].get("default") is False,
+        "Ezlia must be installed but optional",
+    )
+
+    client = tomllib.loads(
+        (AIROOTFS / "etc/lga/client.toml").read_text(encoding="utf-8")
+    )
+    require(client.get("config_version") == 1, "invalid LGA client config version")
+    require(client["ltca"].get("endpoint") == "", "release must not embed an LTCA endpoint")
+    require(
+        client["interaction"].get("persona") == "standard",
+        "standard interaction must remain the default",
+    )
+    require(
+        client["interaction"].get("available_personas") == ["standard", "ezlia"],
+        "installed persona catalog is invalid",
+    )
+    for relative in (
+        "README.md",
+        "docs/ARCHITECTURE.md",
+        "profile/airootfs/opt/lga/nanolga/README.md",
+    ):
+        require(
+            "Learning Generative Agent" not in text(relative),
+            f"obsolete LGA expansion in {relative}",
+        )
+
+
 def validate_browser_policy() -> None:
     data = json.loads(
         (AIROOTFS / "etc/chromium/policies/managed/workspace.json").read_text(encoding="utf-8")
@@ -79,6 +155,12 @@ def validate_browser_policy() -> None:
 def validate_units() -> None:
     learning = text("profile/airootfs/etc/systemd/system/lga-learning@.service")
     egress = text("profile/airootfs/etc/systemd/system/lga-egressd.service")
+    operator = text(
+        "profile/airootfs/etc/systemd/system/workspace-operator-setup.service"
+    )
+    operator_script = text(
+        "profile/airootfs/usr/local/libexec/workspace-operator-setup"
+    )
     for directive in (
         "NoNewPrivileges=yes",
         "CapabilityBoundingSet=",
@@ -100,12 +182,47 @@ def validate_units() -> None:
         "RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6",
     ):
         require(directive in egress, f"egress service missing hardening: {directive}")
+    for directive in (
+        "After=systemd-sysusers.service",
+        "NoNewPrivileges=yes",
+        "CapabilityBoundingSet=",
+        "ProtectHome=read-only",
+        "ProtectSystem=strict",
+        "MemoryDenyWriteExecute=yes",
+    ):
+        require(directive in operator, f"operator verifier missing hardening: {directive}")
+    require("ReadWritePaths=/etc" not in operator, "operator verifier must not write /etc")
+    require("chpasswd" not in operator_script, "operator verifier must not mutate passwords")
+    require("openssl rand" not in operator_script, "operator verifier must remain read-only")
+
+
+def validate_release() -> None:
+    version = text("VERSION").strip()
+    release: dict[str, str] = {}
+    for line in text("profile/airootfs/etc/workspace-release").splitlines():
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        release[key] = value.strip().strip('"')
+    require(release.get("VERSION") == version, "VERSION and workspace-release disagree")
+    require(
+        release.get("LGA_NAME") == "Learning Generative Architecture",
+        "workspace-release has an invalid LGA name",
+    )
+    require(release.get("LGA_SPEC_VERSION") == "0.3.0", "invalid release LGA spec")
+    require(
+        release.get("LGA_WORKSPACE_BOUNDARY") == "external",
+        "release boundary must identify WorkSpace as external",
+    )
+    require(f"## {version} -" in text("CHANGELOG.md"), "release missing from changelog")
 
 
 def validate_files() -> None:
     required = [
         "profile/profiledef.sh",
         "profile/airootfs/root/customize_airootfs.sh",
+        "profile/airootfs/etc/lga/architecture.toml",
+        "profile/airootfs/etc/lga/client.toml",
         "profile/airootfs/etc/sudoers.d/10-workspace-operator",
         "profile/airootfs/usr/local/libexec/workspace-operator-setup",
         "profile/airootfs/usr/local/bin/nanolga",
@@ -158,8 +275,10 @@ def main() -> int:
     checks = [
         validate_packages,
         validate_policy,
+        validate_architecture,
         validate_browser_policy,
         validate_units,
+        validate_release,
         validate_files,
         validate_secrets,
     ]

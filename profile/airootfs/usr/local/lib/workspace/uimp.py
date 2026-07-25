@@ -383,7 +383,7 @@ def _parser() -> argparse.ArgumentParser:
     pack_parser.add_argument("inputs", nargs="+", type=Path)
     pack_parser.add_argument("--output", required=True, type=Path)
     pack_parser.add_argument("--source", default="unknown")
-    pack_parser.add_argument("--destination", default="lga-core")
+    pack_parser.add_argument("--destination", default="ltca-ingress")
     pack_parser.add_argument("--protocol", default="binary")
     pack_parser.add_argument("--protocol-version", default="1")
     pack_parser.add_argument(

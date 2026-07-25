@@ -1,8 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# The account cannot be reached from the desktop with a known password. tty3
-# uses agetty autologin and the only sudo command is the interactive installer.
-password="$(/usr/bin/openssl rand -base64 36 | tr -d '\n')"
-readonly password
-printf 'operator:%s\n' "$password" | /usr/sbin/chpasswd
+# The account is locked in the immutable image. tty3 uses agetty's root-owned
+# autologin path, while the graphical account cannot authenticate as operator.
+# This boot unit is deliberately read-only: mutating /etc/shadow here races with
+# other account initialization and is unnecessary.
+operator_entry="$(/usr/bin/getent passwd operator)"
+readonly operator_entry
+[[ -n "$operator_entry" ]]
+[[ "$operator_entry" == *:/home/operator:/bin/bash ]]
+
+operator_status="$(/usr/bin/passwd --status operator)"
+root_status="$(/usr/bin/passwd --status root)"
+readonly operator_status root_status
+[[ "$operator_status" =~ ^operator[[:space:]]+L[[:space:]] ]]
+[[ "$root_status" =~ ^root[[:space:]]+L[[:space:]] ]]
+
+/usr/bin/id operator >/dev/null
+/usr/bin/test -r /etc/sudoers.d/10-workspace-operator

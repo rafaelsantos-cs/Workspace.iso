@@ -112,7 +112,7 @@ class MemoryManager:
     ) -> str:
         """Persist curated memory and reject direct writes from AGPs."""
         if writer_role != CORE_WRITER_ROLE:
-            raise PermissionError("only the LGA Core may curate semantic memory")
+            raise PermissionError("only the DeepBrain writer role may curate semantic memory")
         with self._lock, self._connection:
             self._connection.execute(
                 """

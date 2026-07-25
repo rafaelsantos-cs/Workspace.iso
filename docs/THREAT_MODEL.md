@@ -4,7 +4,8 @@
 
 - integridade do sistema base e das políticas;
 - credenciais do provider e do operador;
-- memória curada pelo MMA;
+- credenciais futuras do ingresso LTCA;
+- sources e memória da LUSC, acessíveis somente via MMA;
 - arquivos pessoais do operador;
 - disponibilidade da máquina;
 - proveniência dos dados usados no aprendizado.
@@ -22,7 +23,9 @@
 | app do desktop tenta usar o instalador para virar root | desktop sem sudo; instalador isolado na identidade `operator` de tty3 | acesso físico ao tty3 continua privilegiado por projeto |
 | arquivo UIMP malformado | limites, hash, paths normalizados, proibição de symlink e extração atômica | vulnerabilidade futura no consumidor do payload |
 | browser foge da allowlist | políticas gerenciadas e filesystem isolado | política de browser não é firewall; browser fica supervisionado |
-| memória aprende uma conclusão falsa | candidatos exigem confirmações e contradições; promoção não automática | evidência falsa ou confirmação humana incorreta |
+| worker tenta escrever memória diretamente | a WorkSpace produz artefato/UIMP; a LUSC fica atrás da MMA dentro da LTCA | uma implementação futura do ingresso pode ter falhas de autorização |
+| LIP tenta assumir autoridade cognitiva | persona declarada como apresentação sem autoridade; DeepBrain continua responsável pelo conteúdo | cliente futuro pode misturar indevidamente estilo e política |
+| laboratório NanoLGA é confundido com a v1 | documentação, manifesto e status o marcam como laboratório opcional | integração externa pode ignorar a marcação |
 | atualização compromete dependência | pacotes Arch assinados, build registrado e checksum da ISO | supply chain upstream e repositório comprometido |
 
 ## Fora do escopo
@@ -41,5 +44,8 @@
 3. Credenciais nunca entram no workspace do job.
 4. Downloads não viram memória nem execução automaticamente.
 5. Ações S0/S1 não são implementadas por esta distro e continuam externas.
-6. A política pode ser relaxada somente por um operador, com alteração
+6. A WorkSpace não acessa a LUSC diretamente e não expõe o DeepBrain como
+   endpoint externo.
+7. Uma LIP não concede permissões, memória ou autoridade de execução.
+8. A política pode ser relaxada somente por um operador, com alteração
    versionada e nova validação.

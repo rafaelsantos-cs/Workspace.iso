@@ -1,0 +1,11 @@
+config_version = 1
+
+[ltca]
+endpoint = ""
+project_id = ""
+auth_profile = ""
+
+[interaction]
+persona = "standard"
+available_personas = ["standard", "ezlia"]
+fallback_without_lip = "standard"

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "nanolga"
 version = "0.1.0"
-description = "Reference prototype of the NanoLGA modular agent architecture"
+description = "Compatibility laboratory for the modular Learning Generative Architecture"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []

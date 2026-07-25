@@ -1,0 +1,79 @@
+schema_version = 1
+spec_version = "0.3.0"
+name = "Learning Generative Architecture"
+
+[boundaries]
+workspace = "external-client"
+ezlia = "external-presentation"
+ltca = "operational-boundary"
+lusc = "protected-inner-layer"
+lusc_access = "mma-only"
+
+[v1]
+request_path = ["workspace-cli", "ltca-ingress", "deepbrain-v1"]
+memory_path = ["deepbrain-v1", "mma-minimal", "lusc"]
+deferred = [
+  "agps",
+  "cca",
+  "advanced-standby",
+  "tts",
+  "stt",
+  "vision",
+  "robotics",
+  "multimodal-lip",
+]
+
+[components.deepbrain]
+name = "DeepBrain"
+role = "internal-orchestrator"
+boundary = "ltca"
+
+[components.agp]
+expansion = "Assistant Generative Processor"
+role = "bounded-specialist"
+boundary = "ltca"
+v1_required = false
+
+[components.cca]
+expansion = "Cognitive Choice Agent"
+role = "on-demand-deliberation"
+boundary = "ltca"
+v1_required = false
+
+[components.mma]
+expansion = "Memory Manager Agent"
+role = "only-lusc-ingress-egress"
+boundary = "ltca"
+
+[components.lam]
+expansion = "LGA Asynchronous Messaging"
+role = "asynchronous-uimp-queue"
+boundary = "ltca"
+v1_required = false
+
+[components.lusc]
+expansion = "LGA Universal Source Cloud"
+role = "protected-source-and-memory-layer"
+boundary = "ltca"
+
+[components.uimp]
+expansion = "Universal Information Management Protocol"
+role = "universal-information-envelope"
+
+[components.lip]
+expansion = "LGA Intelligent Persona"
+role = "optional-presentation-and-personality"
+authority = "none"
+boundary = "external-presentation"
+
+[personas.standard]
+display_name = "Standard"
+installed = true
+default = true
+
+[personas.ezlia]
+display_name = "Ezlia"
+type = "LIP"
+installed = true
+default = false
+authority = "presentation-only"

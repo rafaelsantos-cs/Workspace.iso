@@ -1,4 +1,4 @@
-"""LGA Core: strategy, delegation, synthesis and memory curation."""
+"""NanoLGA DeepBrain prototype: strategy, delegation, synthesis and curation."""
 
 from __future__ import annotations
 
@@ -77,7 +77,7 @@ class LGABrain:
         data = await self.provider.generate_json(
             purpose="brain.plan",
             system_prompt=(
-                "You are the NanoLGA Core. Operate at objective, strategy, priority "
+                "You are the NanoLGA DeepBrain prototype. Operate at objective, strategy, priority "
                 "and coordination level. Never pretend to execute a task yourself. "
                 "Choose the smallest suitable AGP, respect the total budget, expose "
                 "risk, and recommend CCA only for ambiguity, risk, or priority conflict."
@@ -157,7 +157,7 @@ class LGABrain:
         data = await self.provider.generate_json(
             purpose="brain.synthesize",
             system_prompt=(
-                "You are the NanoLGA Core. Synthesize only from AGP reports and "
+                "You are the NanoLGA DeepBrain prototype. Synthesize only from AGP reports and "
                 "their evidence. Do not invent results. Propose at most three semantic "
                 "memories; every proposal remains a candidate until confirmed."
             ),
@@ -173,7 +173,7 @@ class LGABrain:
         )
         answer = str(data.get("answer", "")).strip()
         if not answer:
-            answer = "Task finished without a Core synthesis."
+            answer = "Task finished without a DeepBrain synthesis."
         candidates = self._curate_candidates(
             data.get("memory_candidates") or [], task
         )

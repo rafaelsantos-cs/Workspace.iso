@@ -27,21 +27,29 @@ redirects e rejeita IPs privados, loopback, link-local, multicast e reservados.
 
 ```bash
 uimp pack resultado.json \
-  --source agp-code \
-  --destination lga-core \
+  --source workspace-worker \
+  --destination ltca-ingress \
   --protocol vsp \
   --output resultado.uimp
 uimp validate resultado.uimp
 ```
 
+O destino padrão também é `ltca-ingress`. O arquivo continua em quarentena ou
+na fila local até um cliente LTCA autenticado existir; empacotar não promove o
+payload para a LUSC.
+
 ## Diagnóstico
 
 ```bash
 workspace-status
-systemctl status lga-egressd
+systemctl status lga-egressd workspace-operator-setup
 journalctl -u 'lga-learning@*'
 systemd-analyze security lga-egressd.service lga-learning@.service
 ```
+
+`workspace-status` deve identificar a WorkSpace como cliente externo, mostrar a
+rota v1 e informar `não configurado` enquanto `/etc/lga/client.toml` não tiver
+endpoint LTCA. NanoLGA é relatada separadamente como laboratório.
 
 ## Recuperação
 

@@ -6,7 +6,7 @@ import unittest
 import zipfile
 from pathlib import Path
 
-from uimp import UimpError, pack, scan, unpack, validate
+from uimp import UimpError, _parser, pack, scan, unpack, validate
 from workspace_policy import load_policy
 
 
@@ -25,7 +25,7 @@ class UimpTests(unittest.TestCase):
                 [source],
                 envelope,
                 source="agp-vision",
-                destination="lga-core",
+                destination="ltca-ingress",
                 protocol="vsp",
                 protocol_version="1",
                 priority="normal",
@@ -38,6 +38,12 @@ class UimpTests(unittest.TestCase):
             unpack(envelope, destination, POLICY)
             extracted = next((destination / "payload").iterdir())
             self.assertEqual(extracted.read_bytes(), source.read_bytes())
+
+    def test_cli_defaults_to_ltca_ingress(self) -> None:
+        arguments = _parser().parse_args(
+            ["pack", "payload.bin", "--output", "payload.uimp"]
+        )
+        self.assertEqual(arguments.destination, "ltca-ingress")
 
     def test_pack_requires_uimp_extension(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

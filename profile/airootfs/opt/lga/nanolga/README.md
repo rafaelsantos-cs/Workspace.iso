@@ -1,19 +1,25 @@
 # NanoLGA v0.1
 
-Reference prototype of the **Learning Generative Agent** architecture: one
-executive Core, replaceable specialist AGPs, an on-demand CCA, curated memory,
-and a deterministic safety authority outside model control.
+Reference laboratory for the mature topology of the **Learning Generative
+Architecture**: one DeepBrain implementation, replaceable specialist AGPs, an
+on-demand CCA, curated memory, and a deterministic safety authority outside
+model control.
 
 This is an executable architectural baseline, not a claim of consciousness,
 general autonomy, industrial certification, or proven superiority over
 monolithic agents.
 
+NanoLGA is **not** the canonical production route of LGA v1. The v1 path is
+WorkSpace CLI → LTCA ingress → DeepBrain v1, with memory access through a
+minimal MMA → LUSC. AGPs and CCA remain available here only to test contracts
+planned for later versions.
+
 ## Current topology
 
 ```mermaid
 flowchart TD
-    E["Objective or event"] --> C["LGA Core / LGABrain"]
-    C <--> M["MMA"]
+    E["Laboratory task"] --> C["DeepBrain / LGABrain"]
+    C <--> M["MMA lab / SQLite"]
     C <--> A["AGP pool"]
     C -. "only when needed" .-> D["CCA"]
     D -. "bounded verdict" .-> C
@@ -21,8 +27,9 @@ flowchart TD
     S["Deterministic Safety Supervisor"] -->|"ALLOW / BLOCK"| G
 ```
 
-The central box is called **LGA Core** in the architecture. `LGABrain` is the
-executive software component inside it. The complete set of boxes is the LGA.
+**DeepBrain** is the canonical architectural service. `LGABrain` is retained as
+the v0.1 Python class name for compatibility. This process is a local simulator,
+not a public DeepBrain endpoint or a complete LTCA deployment.
 
 ## What is implemented
 
@@ -30,8 +37,9 @@ executive software component inside it. The complete set of boxes is the LGA.
   Finalization → Idle-Learning;
 - strict Python contracts for tasks, plans, actions, AGP reports, CCA verdicts,
   safety decisions and memories;
-- Core-controlled planning, delegation, synthesis and semantic-memory curation;
-- direct Core ↔ AGP reports with no MMA reference exposed to AGPs;
+- DeepBrain-controlled planning, delegation, synthesis and semantic-memory
+  curation;
+- direct DeepBrain ↔ AGP reports with no MMA reference exposed to AGPs;
 - selective four-role CCA deliberation;
 - deterministic, fail-closed Safety Supervisor;
 - raw event log plus candidate/active/stale semantic memory in SQLite;
@@ -73,7 +81,7 @@ Default routing:
 
 | Role | Default model |
 | --- | --- |
-| LGA Core | `openai/gpt-oss-20b` |
+| DeepBrain lab | `openai/gpt-oss-20b` |
 | CCA | `openai/gpt-oss-20b` |
 | Generative AGPs | `llama-3.1-8b-instant` |
 
@@ -82,9 +90,9 @@ variables shown in `.env.example`.
 
 ## Memory does not silently become truth
 
-Core synthesis creates **candidate memories**. With the provisional policy, a
-candidate needs three confirmations, no contradiction and sufficient confidence
-before it is retrieved as active context:
+DeepBrain synthesis creates **candidate memories**. With the provisional
+laboratory policy, a candidate needs three confirmations, no contradiction and
+sufficient confidence before it is retrieved as active context:
 
 ```bash
 nanolga memories --status candidate
@@ -107,13 +115,14 @@ AGP memory isolation and evidence-based memory promotion.
 
 ## Deliberate v0.1 limitations
 
-- one logical Core processes one task at a time;
+- one logical DeepBrain implementation processes one task at a time;
 - CCA performs its four roles in one structured model call to preserve the free
   API budget;
 - a `REVISE` verdict stops safely instead of entering an unbounded replan loop;
 - semantic retrieval is bounded lexical scoring, not embeddings;
 - no shell, filesystem mutation, network tool or physical actuator AGP exists;
 - S0/S1 are architecture hooks, not industrial safety certification;
-- Core-2, task leases, idempotency and distributed consistency are deferred.
+- a real LTCA ingress, LUSC backend, LAM, task leases, idempotency and
+  distributed consistency are deferred.
 
 See [Architecture](docs/ARCHITECTURE.md) and [Open questions](docs/OPEN_QUESTIONS.md).

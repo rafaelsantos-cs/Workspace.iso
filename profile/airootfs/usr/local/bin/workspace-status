@@ -3,8 +3,33 @@ set -euo pipefail
 
 printf 'WorkSpace release\n'
 sed -n '1,20p' /etc/workspace-release
+
+ltca_endpoint="$(
+    sed -n 's/^endpoint = "\(.*\)"$/\1/p' /etc/lga/client.toml | head -n 1
+)"
+readonly ltca_endpoint
+
+printf '\nLGA architecture\n'
+printf 'name: Learning Generative Architecture\n'
+printf 'specification: 0.3.0\n'
+printf 'WorkSpace boundary: external client\n'
+printf 'v1 route: WorkSpace CLI -> LTCA ingress -> DeepBrain v1\n'
+printf 'memory route: DeepBrain v1 -> MMA minimal -> LUSC\n'
+printf 'LUSC access: MMA only\n'
+if [[ -n "$ltca_endpoint" ]]; then
+    printf 'LTCA ingress: %s\n' "$ltca_endpoint"
+else
+    printf 'LTCA ingress: not configured\n'
+fi
+printf 'interaction: standard (Ezlia LIP installed, optional)\n'
+printf 'NanoLGA: compatibility lab, not the canonical v1 route\n'
+
 printf '\nServices\n'
-systemctl --no-pager --plain is-active lga-egressd.service firewalld.service NetworkManager.service || true
+systemctl --no-pager --plain is-active \
+    lga-egressd.service \
+    firewalld.service \
+    NetworkManager.service \
+    workspace-operator-setup.service || true
 printf '\nJobs\n'
 find /var/lib/lga/jobs -mindepth 1 -maxdepth 1 -type d -printf '%f\n' 2>/dev/null | sort || true
 printf '\nArtifact queue\n'
