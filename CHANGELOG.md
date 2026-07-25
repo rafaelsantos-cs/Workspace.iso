@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.3 - 2026-07-25
+
+- adição da sonda local e somente leitura `workspaceprobe`, que confirma
+  `graphical.target`, SDDM, Plasma, TTY3 e a identidade `operator`;
+- smoke test QEMU simplificado para digitar apenas caracteres invariantes entre
+  layouts de teclado, sem operadores de shell enviados pelo VNC;
+- preservação da política de entrada `DROP`, sem abrir SSH para facilitar CI.
+
 ## 0.1.2 - 2026-07-25
 
 - confirmação em QEMU de que o runtime serial, o serviço `operator`, a

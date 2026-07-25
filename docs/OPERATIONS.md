@@ -49,6 +49,7 @@ payload para a LUSC.
 
 ```bash
 workspace-status
+workspaceprobe
 systemctl status lga-egressd workspace-operator-setup
 journalctl -u 'lga-learning@*'
 systemd-analyze security lga-egressd.service lga-learning@.service
@@ -57,6 +58,8 @@ systemd-analyze security lga-egressd.service lga-learning@.service
 `workspace-status` deve identificar a WorkSpace como cliente externo, mostrar a
 rota v1 e informar `não configurado` enquanto `/etc/lga/client.toml` não tiver
 endpoint LTCA. NanoLGA é relatada separadamente como laboratório.
+Executado no TTY3, `workspaceprobe` imprime `GRAPHICALREADY` somente quando
+SDDM, Plasma, o serviço de identidade e o console `operator` estão ativos.
 
 ## Recuperação
 

@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -uo pipefail
+
+ready=1
+readonly required_units=(
+    graphical.target
+    sddm.service
+    workspace-operator-setup.service
+    getty@tty3.service
+)
+
+for unit in "${required_units[@]}"; do
+    systemctl is-active --quiet "$unit" || ready=0
+done
+
+[[ "${USER:-}" == "operator" ]] || ready=0
+[[ "$(tty 2>/dev/null)" == "/dev/tty3" ]] || ready=0
+pgrep -u workspace -x plasmashell >/dev/null || ready=0
+
+if [[ "$ready" -eq 1 ]]; then
+    printf 'GRAPHICALREADY\n'
+    exit 0
+fi
+
+printf 'WAIT\n'
+exit 1

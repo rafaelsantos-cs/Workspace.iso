@@ -32,6 +32,7 @@ file_permissions=(
   ["/usr/local/bin/workspace-first-session"]="0:0:755"
   ["/usr/local/bin/workspace-job"]="0:0:755"
   ["/usr/local/bin/workspace-status"]="0:0:755"
+  ["/usr/local/bin/workspaceprobe"]="0:0:755"
   ["/usr/local/lib/workspace/egressd.py"]="0:0:755"
   ["/usr/local/lib/workspace/job_runner.py"]="0:0:755"
   ["/usr/local/lib/workspace/uimp.py"]="0:0:755"

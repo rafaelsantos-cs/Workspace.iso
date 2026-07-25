@@ -231,6 +231,7 @@ def validate_files() -> None:
         "profile/airootfs/usr/local/bin/workspace-browser",
         "profile/airootfs/usr/local/bin/workspace-fetch",
         "profile/airootfs/usr/local/bin/workspace-job",
+        "profile/airootfs/usr/local/bin/workspaceprobe",
         "profile/airootfs/usr/local/lib/workspace/egressd.py",
         "profile/airootfs/usr/local/lib/workspace/job_runner.py",
         "profile/airootfs/usr/local/lib/workspace/uimp.py",
@@ -244,6 +245,7 @@ def validate_files() -> None:
         "scripts/prepare-profile.sh",
         "scripts/validate.sh",
         "profile/airootfs/root/customize_airootfs.sh",
+        "profile/airootfs/usr/local/bin/workspaceprobe",
     ):
         mode = (ROOT / relative).stat().st_mode
         require(mode & stat.S_IXUSR, f"script is not executable: {relative}")

@@ -161,8 +161,6 @@ jobs:
           test -n "$iso"
           read -r -a accel <<< "$QEMU_ACCEL"
           readonly vnc=/tmp/workspace-vnc/bin/vncdotool
-          readonly ready_hex='\x47\x52\x41\x50\x48\x49\x43\x41\x4c\x52\x45\x41\x44\x59'
-          readonly wait_hex='\x57\x41\x49\x54'
 
           cleanup_pid() {
             local pid="$1"
@@ -177,10 +175,8 @@ jobs:
             local output="results/gui/$mode"
             local pid
             local graphical_ready=0
-            local probe_command
             shift 2
             mkdir -p "$output"
-            probe_command="clear; if systemctl is-active graphical.target sddm.service workspace-operator-setup.service getty@tty3.service >/dev/null 2>&1 && pgrep -u workspace -x plasmashell >/dev/null && pgrep -t tty3 -u operator -x bash >/dev/null; then printf '${ready_hex}\\n'; else printf '${wait_hex}\\n'; fi"
 
             qemu-system-x86_64 "${accel[@]}" \
               -machine q35 \
@@ -217,7 +213,8 @@ jobs:
               fi
               "$vnc" -s "127.0.0.1::$vnc_port" key ctrl-alt-f3 || true
               sleep 4
-              "$vnc" -s "127.0.0.1::$vnc_port" type "$probe_command" || true
+              "$vnc" -s "127.0.0.1::$vnc_port" key ctrl-l || true
+              "$vnc" -s "127.0.0.1::$vnc_port" type workspaceprobe || true
               "$vnc" -s "127.0.0.1::$vnc_port" key enter || true
               sleep 4
               "$vnc" -s "127.0.0.1::$vnc_port" \

@@ -5,7 +5,7 @@ distribuição fornece o desktop, as ferramentas e a zona restrita de
 experimentação usadas pela arquitetura, sem transformar o sistema operacional
 no próprio DeepBrain.
 
-Esta é a versão **0.1.1**, alinhada à especificação LGA 0.3. Ela prioriza
+Esta é a versão **0.1.3**, alinhada à especificação LGA 0.3. Ela prioriza
 isolamento, rastreabilidade e builds automatizados. Como o Arch é rolling
 release, reproduzir uma ISO antiga exige preservar também o snapshot dos
 repositórios e pacotes. A WorkSpace não é um sistema de segurança industrial e
@@ -92,6 +92,8 @@ Para um build isolado em uma máquina com Docker:
 ## Uso inicial
 
 - `workspace-status`: mostra release, limite LGA, serviços, política e filas;
+- `workspaceprobe`: confirma localmente que Plasma e o console isolado do
+  operador estão ativos, sem abrir uma porta administrativa;
 - `workspace-job create <id> -- <comando>`: cria um job sem executá-lo;
 - `workspace-job start <id>`: inicia o job pelo serviço restrito;
 - `workspace-fetch URL`: solicita um download HTTPS ao broker;
