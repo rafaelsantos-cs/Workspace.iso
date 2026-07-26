@@ -1,0 +1,207 @@
+name: Export validated ISO
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/export-iso.yml'
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: export-validated-iso
+  cancel-in-progress: false
+
+jobs:
+  export:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+      SOURCE_BUILD_RUN: '30179825182'
+      SOURCE_QEMU_RUN: '30180192940'
+      SOURCE_SHA: 'bc097939013b495aaabf4b6cbca47e055b0101f5'
+      EXPORT_NAME: 'WorkSpace-0.1.3-x86_64.iso'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify pinned build and QEMU runs
+        run: |
+          set -euo pipefail
+          build="$(gh run view "$SOURCE_BUILD_RUN" \
+            --json conclusion,headSha,workflowName)"
+          qemu="$(gh run view "$SOURCE_QEMU_RUN" \
+            --json conclusion,headSha,workflowName)"
+          test "$(jq -r .conclusion <<<"$build")" = success
+          test "$(jq -r .headSha <<<"$build")" = "$SOURCE_SHA"
+          test "$(jq -r .workflowName <<<"$build")" = 'Build ISO'
+          test "$(jq -r .conclusion <<<"$qemu")" = success
+          test "$(jq -r .headSha <<<"$qemu")" = "$SOURCE_SHA"
+          test "$(jq -r .workflowName <<<"$qemu")" = 'QEMU smoke test'
+
+      - name: Download and split the validated ISO
+        run: |
+          set -euo pipefail
+          mkdir -p dist export
+          gh run download "$SOURCE_BUILD_RUN" \
+            --name WorkSpace-ISO \
+            --dir dist
+          (cd dist && sha256sum -c SHA256SUMS)
+          iso="$(find dist -maxdepth 1 -type f -name '*.iso' -print -quit)"
+          test -n "$iso"
+          iso_sha="$(sha256sum "$iso" | cut -d ' ' -f 1)"
+          split -b 450M -d -a 2 \
+            "$iso" "export/${EXPORT_NAME}.part-"
+          mapfile -t parts < <(
+            find export -maxdepth 1 -type f -name '*.part-*' -print | sort
+          )
+          test "${#parts[@]}" -eq 12
+          (
+            cd export
+            sha256sum *.part-* > PARTS.SHA256
+            printf '%s  %s\n' "$iso_sha" "$EXPORT_NAME" \
+              > "${EXPORT_NAME}.sha256"
+          )
+          cat > export/REASSEMBLE.txt <<EOF
+          cat ${EXPORT_NAME}.part-* > ${EXPORT_NAME}
+          sha256sum -c ${EXPORT_NAME}.sha256
+          EOF
+          jq -n \
+            --arg build_run "$SOURCE_BUILD_RUN" \
+            --arg qemu_run "$SOURCE_QEMU_RUN" \
+            --arg source_sha "$SOURCE_SHA" \
+            --arg iso "$EXPORT_NAME" \
+            --arg iso_sha256 "$iso_sha" \
+            '{
+              build_run: $build_run,
+              qemu_run: $qemu_run,
+              source_sha: $source_sha,
+              iso: $iso,
+              iso_sha256: $iso_sha256,
+              part_size: "450 MiB",
+              part_count: 12
+            }' > export/BUILD.json
+          ls -lh export
+
+      - name: Upload export manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorkSpace-ISO-0.1.3-manifest
+          path: |
+            export/BUILD.json
+            export/PARTS.SHA256
+            export/REASSEMBLE.txt
+            export/*.iso.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload part 00
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorkSpace-ISO-0.1.3-part-00
+          path: export/*.part-00
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      - name: Upload part 01
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorkSpace-ISO-0.1.3-part-01
+          path: export/*.part-01
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      - name: Upload part 02
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorkSpace-ISO-0.1.3-part-02
+          path: export/*.part-02
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      - name: Upload part 03
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorkSpace-ISO-0.1.3-part-03
+          path: export/*.part-03
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      - name: Upload part 04
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorkSpace-ISO-0.1.3-part-04
+          path: export/*.part-04
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      - name: Upload part 05
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorkSpace-ISO-0.1.3-part-05
+          path: export/*.part-05
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      - name: Upload part 06
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorkSpace-ISO-0.1.3-part-06
+          path: export/*.part-06
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      - name: Upload part 07
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorkSpace-ISO-0.1.3-part-07
+          path: export/*.part-07
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      - name: Upload part 08
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorkSpace-ISO-0.1.3-part-08
+          path: export/*.part-08
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      - name: Upload part 09
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorkSpace-ISO-0.1.3-part-09
+          path: export/*.part-09
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      - name: Upload part 10
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorkSpace-ISO-0.1.3-part-10
+          path: export/*.part-10
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      - name: Upload part 11
+        uses: actions/upload-artifact@v4
+        with:
+          name: WorkSpace-ISO-0.1.3-part-11
+          path: export/*.part-11
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
